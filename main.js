@@ -52,11 +52,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* 3-3 */
     const apiKey = 'PeXM6u5efUO1Is0mnvacjeihyoDvWfpk'
-    const apiUrl = `https://api.giphy.com/v1/gifs/random?api_key=${ apiKey }&tag=cat&rating=g`
     const giphyForm = document.getElementById('giphy-form')
 
     giphyForm.addEventListener('submit', async (e) => {
         e.preventDefault()
+        const giphy = giphyForm.querySelector("input[name='giphy']").value
+
+        let apiUrl
+        if(!giphy) apiUrl = `https://api.giphy.com/v1/gifs/random?api_key=${ apiKey }&tag=cat&rating=g`
+        else apiUrl = `https://api.giphy.com/v1/gifs/search?api_key=${ apiKey }&q=${ giphy }&limit=25&offset=0&rating=g&lang=en&bundle=messaging_non_clips`
 
         const res = await fetch(apiUrl)
         if(!res.ok) return
@@ -66,8 +70,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const resultDiv = document.getElementById("giphy-results")
 
-        resultDiv.innerHTML = `
-            <img src="${ data.data.images.fixed_height.url }" />
-        `
+        if(!giphy) {
+            resultDiv.innerHTML = `
+                <img src="${ data.data.images.fixed_height.url }" />
+            `
+        } else {
+            resultDiv.innerHTML = ''
+            data.data.forEach(element => {
+                resultDiv.innerHTML += `
+                    <img src="${ element.images.fixed_height.url }" />
+                `
+            })
+        }
     })
 })
