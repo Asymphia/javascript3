@@ -49,4 +49,25 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>
         `).join('')
     })
+
+    /* 3-3 */
+    const apiKey = 'PeXM6u5efUO1Is0mnvacjeihyoDvWfpk'
+    const apiUrl = `https://api.giphy.com/v1/gifs/random?api_key=${ apiKey }&tag=cat&rating=g`
+    const giphyForm = document.getElementById('giphy-form')
+
+    giphyForm.addEventListener('submit', async (e) => {
+        e.preventDefault()
+
+        const res = await fetch(apiUrl)
+        if(!res.ok) return
+
+        const data = await res.json()
+        if(!data) return
+
+        const resultDiv = document.getElementById("giphy-results")
+
+        resultDiv.innerHTML = `
+            <img src="${ data.data.images.fixed_height.url }" />
+        `
+    })
 })
