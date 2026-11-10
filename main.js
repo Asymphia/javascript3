@@ -51,22 +51,82 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 
     /* 3-3 */
-    const apiKey = 'PeXM6u5efUO1Is0mnvacjeihyoDvWfpk'
+    let page = 0,giphy = null
+
     const giphyForm = document.getElementById('giphy-form')
+
+    const fetchGifs = async () => {
+        const apiKey = 'PeXM6u5efUO1Is0mnvacjeihyoDvWfpk'
+        let apiUrl
+
+        if(!giphy) {
+            apiUrl = `https://api.giphy.com/v1/gifs/random?api_key=${ apiKey }&tag=cat&rating=g`
+        } else {
+            const offset = 25 * page
+            apiUrl = `https://api.giphy.com/v1/gifs/search?api_key=${ apiKey }&q=${ giphy }&limit=25&offset=${ offset }&rating=g&lang=en&bundle=messaging_non_clips`
+        }
+
+        const res = await fetch(apiUrl)
+        const data = await res.json()
+
+        return data
+    }
+
+    const handlePagination = async (type = null) => {
+        if(type === "next") {
+            page++
+        } else if (type === "previous" && page >= 1) {
+            page--
+        }
+
+        const data = await fetchGifs()
+
+        const resultDiv = document.getElementById("giphy-results")
+
+        resultDiv.innerHTML = ''
+        data.data.forEach(element => {
+            resultDiv.innerHTML += `
+                    <img src="${ element.images.fixed_height.url }" />
+                `
+        })
+        resultDiv.innerHTML += `
+                <br />
+                <button id="previous">Previous</button>
+                <button id="next">Next</button>
+            `
+
+        const nextButton = document.getElementById('next')
+        const previousButton = document.getElementById('previous')
+
+        nextButton.addEventListener('click', e => {
+            handlePagination("next")
+        })
+
+        previousButton.addEventListener('click', e => {
+            handlePagination("previous")
+        })
+
+        if(page === 0) {
+            previousButton.style.opacity = '.5'
+            previousButton.style.pointerEvents = 'none'
+        } else {
+            previousButton.style.opacity = '1'
+            previousButton.style.pointerEvents = 'auto'
+        }
+    }
 
     giphyForm.addEventListener('submit', async (e) => {
         e.preventDefault()
-        const giphy = giphyForm.querySelector("input[name='giphy']").value
+        giphy = giphyForm.querySelector("input[name='giphy']").value
+        page = 0
 
-        let apiUrl
-        if(!giphy) apiUrl = `https://api.giphy.com/v1/gifs/random?api_key=${ apiKey }&tag=cat&rating=g`
-        else apiUrl = `https://api.giphy.com/v1/gifs/search?api_key=${ apiKey }&q=${ giphy }&limit=25&offset=0&rating=g&lang=en&bundle=messaging_non_clips`
+        let data
 
-        const res = await fetch(apiUrl)
-        if(!res.ok) return
-
-        const data = await res.json()
-        if(!data) return
+        if(giphy) {
+            data = await fetchGifs()
+        } else {
+            data = await fetchGifs()
+        }
 
         const resultDiv = document.getElementById("giphy-results")
 
@@ -75,12 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <img src="${ data.data.images.fixed_height.url }" />
             `
         } else {
-            resultDiv.innerHTML = ''
-            data.data.forEach(element => {
-                resultDiv.innerHTML += `
-                    <img src="${ element.images.fixed_height.url }" />
-                `
-            })
+            await handlePagination()
         }
     })
 })
