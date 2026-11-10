@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const data = await res.json()
+        console.log(data)
 
         if(!data) {
             return
